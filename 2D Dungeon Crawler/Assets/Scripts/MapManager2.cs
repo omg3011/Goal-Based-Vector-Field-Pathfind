@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapManager : MonoBehaviour
+public class MapManager2 : MonoBehaviour
 {
   // Twerkable
   public Vector2 _tileSize;
@@ -66,7 +66,7 @@ public class MapManager : MonoBehaviour
       Tile tile = go.GetComponent<Tile>();
       if (tile)
       {
-        tile.SetAll(TileType.EMPTY, i, 65535, _tileSize);
+        tile.SetAll(TileType.EMPTY, i, 0, _tileSize);
         _listOfTile.Add(tile);
       }
     }
@@ -132,7 +132,7 @@ public class MapManager : MonoBehaviour
           continue;
 
         _listOfTile[i].SetType(TileType.OBSTACLE);
-        _listOfTile[i].SetDCost(-1);        
+        _listOfTile[i].SetDCost(-1);
       }
     }
   }
@@ -189,7 +189,7 @@ public class MapManager : MonoBehaviour
     listEmptyTile.RemoveAt(randomIndex);
 
     randomIndex = Random.Range(0, listEmptyTile.Count);
-    _tileGoal = _listOfTile[_listOfTile.Count/2 + 2];//listEmptyTile[randomIndex];
+    _tileGoal = _listOfTile[_listOfTile.Count / 2 + 2];//listEmptyTile[randomIndex];
     _tileGoal.SetType(TileType.GOAL);
     listEmptyTile.RemoveAt(randomIndex);
 
@@ -241,10 +241,10 @@ public class MapManager : MonoBehaviour
             (xx == 0 && yy == 0) ||                     // Myself
             (x + xx < 0 || x + xx > _noOfTile.x - 1) || // x boundary
             (y + yy < 0 || y + yy > _noOfTile.y - 1)    // y boundary
-           // (xx == -1 && yy == -1) ||                   // Reject diagonal check
-           // (xx == -1 && yy == 1)  ||                   // Reject diagonal check
-           // (xx == 1 && yy == -1)  ||                   // Reject diagonal check
-           // (xx == 1 && yy == 1)                        // Reject diagonal check
+                                                        // (xx == -1 && yy == -1) ||                   // Reject diagonal check
+                                                        // (xx == -1 && yy == 1)  ||                   // Reject diagonal check
+                                                        // (xx == 1 && yy == -1)  ||                   // Reject diagonal check
+                                                        // (xx == 1 && yy == 1)                        // Reject diagonal check
           )
         {
           continue;
@@ -260,9 +260,9 @@ public class MapManager : MonoBehaviour
         // Check if visited
         tempSize = _visitedList.Count;
         visited = false;
-        for(int i = 0; i < tempSize; ++i)
+        for (int i = 0; i < tempSize; ++i)
         {
-          if(_visitedList[i].GetListID() == newID)
+          if (_visitedList[i].GetListID() == newID)
           {
             visited = true;
             break;
@@ -283,154 +283,85 @@ public class MapManager : MonoBehaviour
   //--------------------------------------------------------------
   // Vector Field Generation Algorithm
   //--------------------------------------------------------------
-  enum VectorFieldDirection
+  List<int> GetAdjacentIndices(int listID, int x, int y)
   {
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM,
-    TOTAL
-  }
-  int Get_NeighbourDCost_VectorField(int x, int y, int listID, VectorFieldDirection dir)
-  {
-    int resultDCost = 0;
-    int newListID = 0;
-    //--------------------------------------------
-    // Left
-    //--------------------------------------------
-    if (dir == VectorFieldDirection.LEFT)
+    // Temp Variable
+    List<int> result = new List<int>();
+    int tempID = 0;
+
+    // Search L
+    if (x - 1 >= 0)
     {
-      // Check if left is out of boundary, use current tile for dCost
-      if(x - 1 < 0)
-      {
-        resultDCost = _listOfTile[listID].GetDCost();
-      }
-      // Check if left is within boundary, use Left tile dCost
-      else
-      {
-        // Get listID of LEFT tile
-        newListID = ConvertArrayToListIndex(x - 1, y);
-
-        // Check if tile type is walkable, get DCost of left tile of the current tile
-        if (_listOfTile[newListID].GetTileType() != TileType.OBSTACLE)
-          resultDCost = _listOfTile[newListID].GetDCost();
-
-        // Check if tile type is obstacle, use current tile for dCost
-        else
-          resultDCost = _listOfTile[listID].GetDCost();
-      }
+      tempID = ConvertArrayToListIndex(x - 1, y);
+      if (_listOfTile[tempID].GetTileType() != TileType.OBSTACLE)
+        result.Add(tempID);
     }
 
-    //--------------------------------------------
-    // RIGHT
-    //--------------------------------------------
-    else if (dir == VectorFieldDirection.RIGHT)
+    // Search R
+    if (x + 1 <= _noOfTile.x - 1)
     {
-      // Check if right is out of boundary, use current tile for dCost
-      if (x + 1 > _noOfTile.x - 1)
-      {
-        resultDCost = _listOfTile[listID].GetDCost();
-      }
-      // Check if right is within boundary,
-      else
-      {
-        // Get listID of RIGHT tile
-        newListID = ConvertArrayToListIndex(x + 1, y);
-
-        // Check if tile type is walkable, get DCost of right tile of the current tile
-        if (_listOfTile[newListID].GetTileType() != TileType.OBSTACLE)
-          resultDCost = _listOfTile[newListID].GetDCost();
-
-        // Check if tile type is obstacle, use current tile for dCost
-        else
-          resultDCost = _listOfTile[listID].GetDCost();
-      }
+      tempID = ConvertArrayToListIndex(x + 1, y);
+      if (_listOfTile[tempID].GetTileType() != TileType.OBSTACLE)
+        result.Add(tempID);
     }
 
-    //--------------------------------------------
-    // TOP
-    //--------------------------------------------
-    else if (dir == VectorFieldDirection.TOP)
+    // Search Btm
+    if (y - 1 >= 0)
     {
-      // Check if TOP is out of boundary, use current tile for dCost
-      if (y + 1 > _noOfTile.y - 1)
-      {
-        resultDCost = _listOfTile[listID].GetDCost();
-      }
-      // Check if TOP is within boundary,
-      else
-      {
-        // Get listID of TOP tile
-        newListID = ConvertArrayToListIndex(x, y+1);
-
-        // Check if tile type is walkable, get DCost of TOP tile of the current tile
-        if (_listOfTile[newListID].GetTileType() != TileType.OBSTACLE)
-          resultDCost = _listOfTile[newListID].GetDCost();
-
-        // Check if tile type is obstacle, use current tile for dCost
-        else
-          resultDCost = _listOfTile[listID].GetDCost();
-      }
+      tempID = ConvertArrayToListIndex(x, y-1);
+      if (_listOfTile[tempID].GetTileType() != TileType.OBSTACLE)
+        result.Add(tempID);
     }
 
-    //--------------------------------------------
-    // BOTTOM
-    //--------------------------------------------
-    else if (dir == VectorFieldDirection.BOTTOM)
+    // Search Top
+    if (y + 1 <= _noOfTile.y - 1)
     {
-      // Check if BOTTOM is out of boundary, use current tile for dCost
-      if (y - 1 < 0)
-      {
-        resultDCost = _listOfTile[listID].GetDCost();
-      }
-      // Check if BOTTOM is within boundary,
-      else
-      {
-        // Get listID of BOTTOM tile
-        newListID = ConvertArrayToListIndex(x, y - 1);
-
-        // Check if tile type is walkable, get DCost of BOTTOM tile of the current tile
-        if (_listOfTile[newListID].GetTileType() != TileType.OBSTACLE)
-          resultDCost = _listOfTile[newListID].GetDCost();
-
-        // Check if tile type is obstacle, use current tile for dCost
-        else
-          resultDCost = _listOfTile[listID].GetDCost();//_listOfTile[ConvertArrayToListIndex(x, y + 1)].GetDCost();
-      }
+      tempID = ConvertArrayToListIndex(x, y+1);
+      if (_listOfTile[tempID].GetTileType() != TileType.OBSTACLE)
+        result.Add(tempID);
     }
 
-    return resultDCost;
+    return result;
   }
 
   void CreateVectorFieldGeneration()
   {
+    //----------------------------------------------------
+    // Temp Variables 
+    //----------------------------------------------------
     int tempSize = _listOfTile.Count;
     int x = 0;
     int y = 0;
-    int listID = 0;
-    float L_dist, R_dist, Top_dist, Bottom_dist;
-
-    for (int i = 0; i < tempSize; ++i)
+   
+    for(int i = 0; i < tempSize; ++i)
     {
       // Get x and y and list index
       x = (int)(i % _noOfTile.x);
       y = (int)(i / _noOfTile.x);
-      listID = i;
 
-      //----------------------------------------------------
-      // Get dCost #If adj tile is non-walker, use current 
-      //----------------------------------------------------
-      L_dist = Get_NeighbourDCost_VectorField(x, y, listID, VectorFieldDirection.LEFT);
-      R_dist = Get_NeighbourDCost_VectorField(x, y, listID, VectorFieldDirection.RIGHT);
-      Bottom_dist = Get_NeighbourDCost_VectorField(x, y, listID, VectorFieldDirection.BOTTOM);
-      Top_dist = Get_NeighbourDCost_VectorField(x, y, listID, VectorFieldDirection.TOP);
+      // Get Neighbours of current node
+      List<int> neighbourList = GetAdjacentIndices(i, x, y);
+      int neighbourCount = neighbourList.Count;
 
-      //----------------------------------------
-      // Update the new vector field direction
-      //----------------------------------------
-      _listOfTile[i].debugMessage_top = L_dist.ToString() + " - " + R_dist.ToString();
-      _listOfTile[i].debugMessage_btm = Top_dist.ToString() + " - " + Bottom_dist.ToString();
-      _listOfTile[i].SetDirection(new Vector3(L_dist - R_dist, Top_dist - Bottom_dist).normalized);
+      // Find lowest neighbour
+      int lowestNeighbourIndex = 0;
+      int lowestNeighbourValue = 65535;
+      for(int j = 0; j < neighbourCount; ++j)
+      {
+        int check_id = neighbourList[j];
+        if (_listOfTile[check_id].GetDCost() < lowestNeighbourValue)
+        {
+          lowestNeighbourValue = _listOfTile[check_id].GetDCost();
+          lowestNeighbourIndex = check_id;
+        }
+      }
+
+      // Set direction to lowest neighbour
+      int lowestX = (int)(lowestNeighbourIndex % _noOfTile.x);
+      int lowestY = (int)(lowestNeighbourIndex / _noOfTile.x);
+      _listOfTile[i].debugMessage_top = lowestX.ToString() + " - " + x.ToString();
+      _listOfTile[i].debugMessage_btm = lowestY.ToString() + " - " + y.ToString();
+      _listOfTile[i].SetDirection(new Vector3(lowestX-x, lowestY-y, 0).normalized);
     }
   }
 
