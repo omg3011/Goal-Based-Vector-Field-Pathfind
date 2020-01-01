@@ -11,7 +11,7 @@ public class AI_Seek_Only : MonoBehaviour
   // Private
   Vector3 moveDir = Vector3.right;
   Vector3 targetPos;
-  Vector3 velocity;
+  [HideInInspector] public Vector3 velocity;
   Vector3 acceleration;
 
   private void Start()
